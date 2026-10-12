@@ -1,0 +1,17 @@
+2026-10-12 08:10:12 SUCCESS_LOGIN user=operator ip=192.0.2.18
+2026-10-12 08:14:33 FAILED_LOGIN user=admin ip=192.0.2.44
+2026-10-12 08:15:09 FAILED_LOGIN user=admin ip=192.0.2.44
+2026-10-12 08:16:21 FAILED_LOGIN user=root ip=192.0.2.44
+2026-10-12 08:17:48 FAILED_LOGIN user=service ip=192.0.2.44
+2026-10-12 08:19:02 FAILED_LOGIN user=admin ip=192.0.2.44
+2026-10-12 08:22:50 FAILED_LOGIN user=admin ip=192.0.2.44
+2026-10-12 08:24:10 SUCCESS_LOGIN user=operator ip=192.0.2.18
+2026-10-12 09:01:02 FAILED_LOGIN user=guest ip=198.51.100.27
+2026-10-12 09:04:22 SUCCESS_LOGIN user=maintainer ip=198.51.100.27
+2026-10-12 09:20:41 FAILED_LOGIN user=deploy ip=203.0.113.73
+2026-10-12 09:22:07 FAILED_LOGIN user=deploy ip=203.0.113.73
+2026-10-12 09:25:18 SUCCESS_LOGIN user=deploy ip=203.0.113.73
+Oct 12 10:13:45 lab-host sshd[2241]: Failed password for invalid user test from 192.0.2.44 port 53812 ssh2
+Oct 12 10:15:06 lab-host sshd[2248]: Accepted password for analyst from 192.0.2.18 port 53821 ssh2
+2026-10-12 10:18:44 INFO user=system ip=192.0.2.18 message=scheduled rotation started
+this line intentionally does not match a supported authentication log format

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#15263b">
+  <meta name="description" content="A local-first authentication log analyzer that identifies repeated failed logins and makes log patterns easy to investigate.">
+  <title>Log Sentinel — Authentication Log Analyzer</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#overview" aria-label="Log Sentinel home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 3 33 8v10c0 8.7-5.4 14.7-13 19C12.4 32.7 7 26.7 7 18V8L20 3Z" fill="currentColor" opacity=".16"/><path d="M20 5.8 30.4 9.7V18c0 7.1-4.1 12-10.4 15.7C13.7 30 9.6 25.1 9.6 18V9.7L20 5.8Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="m14.7 19.8 3.4 3.4 7.3-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="brand-copy"><strong>LOG SENTINEL</strong><small>AUTH ANALYTICS</small></span>
+      </a>
+
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="primary-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">◫</span> Overview <span class="nav-count" id="navEventCount">—</span></button>
+        <button class="nav-item" data-view="analyzer"><span class="nav-icon">⇧</span> Analyze logs</button>
+        <button class="nav-item" data-view="events"><span class="nav-icon">≡</span> Event explorer</button>
+        <button class="nav-item" data-view="ips"><span class="nav-icon">⌁</span> IP investigation</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="privacy-card">
+          <span class="privacy-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v5.5c0 4.7-3.1 7.8-8 9.5-4.9-1.7-8-4.8-8-9.5V6l8-3Z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m8.7 12.2 2.1 2.1 4.7-4.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+          <div><strong>Local-first analysis</strong><p>Log contents stay in this browser.</p></div>
+          <span class="live-dot" title="Local analysis"></span>
+        </div>
+        <div class="sidebar-footer"><span class="status-dot"></span> Ready for investigation <span class="version">v1.0</span></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation" aria-expanded="false">☰</button>
+        <div class="breadcrumbs"><span>Security workspace</span><span class="crumb-separator">/</span><strong id="currentPageName">Overview</strong></div>
+        <div class="topbar-actions">
+          <span class="local-badge"><span class="status-dot"></span> LOCAL ANALYSIS</span>
+          <button class="icon-button" id="helpButton" aria-label="Show project help" title="How this works">?</button>
+          <button class="avatar" id="profileButton" aria-label="Demo workspace">LS</button>
+        </div>
+      </header>
+
+      <section class="view active-view" id="view-overview" data-view-panel="overview">
+        <div class="page-heading overview-heading">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-line"></span> AUTHENTICATION MONITORING</div>
+            <h1>Security at a glance<span class="heading-period">.</span></h1>
+            <p>Turn raw login events into clear, actionable investigation signals.</p>
+          </div>
+          <div class="heading-actions">
+            <span class="demo-badge" id="datasetBadge"><span class="demo-dot"></span> DEMO DATA</span>
+            <button class="button button-primary" id="goAnalyzeButton"><span aria-hidden="true">＋</span> Analyze new logs</button>
+          </div>
+        </div>
+
+        <div class="notice-banner" id="noticeBanner">
+          <span class="notice-symbol">i</span>
+          <p><strong>Investigation signal, not a verdict.</strong> Repeated failures can indicate brute-force activity, but the data alone does not prove an attack. Validate suspicious events with surrounding context.</p>
+          <button class="notice-close" id="dismissNotice" aria-label="Dismiss notice">×</button>
+        </div>
+
+        <div class="metric-grid" id="metricGrid">
+          <article class="metric-card metric-events"><div class="metric-top"><span>Total events</span><span class="metric-icon">≋</span></div><div class="metric-value" id="metricTotal">0</div><div class="metric-foot"><span class="metric-marker"></span><span id="metricTotalFoot">Parsed authentication records</span></div></article>
+          <article class="metric-card metric-failed"><div class="metric-top"><span>Failed logins</span><span class="metric-icon">↘</span></div><div class="metric-value" id="metricFailed">0</div><div class="metric-foot"><span class="metric-marker"></span><span id="metricFailedFoot">Authentication failures</span></div></article>
+          <article class="metric-card metric-flagged"><div class="metric-top"><span>IPs for review</span><span class="metric-icon">⌁</span></div><div class="metric-value" id="metricFlagged">0</div><div class="metric-foot"><span class="metric-marker"></span><span id="metricFlaggedFoot">At or above your threshold</span></div></article>
+          <article class="metric-card metric-parsed"><div class="metric-top"><span>Parse success</span><span class="metric-icon">✓</span></div><div class="metric-value" id="metricParsed">—</div><div class="metric-foot"><span class="metric-marker"></span><span id="metricParsedFoot">Recognized log lines</span></div></article>
+        </div>
+
+        <div class="main-grid overview-charts-grid">
+          <section class="panel activity-panel">
+            <div class="panel-heading"><div><div class="section-kicker">ACTIVITY</div><h2>Failed login timeline</h2><p>Failure counts grouped by time from the parsed logs.</p></div><div class="legend"><span><i class="legend-dot legend-failed"></i> Failed</span><span><i class="legend-dot legend-success"></i> Successful</span></div></div>
+            <div class="chart-wrap" id="activityChart" role="img" aria-label="Login activity chart"></div>
+            <div class="chart-footnote"><span class="chart-note-icon">↗</span><span id="timelineFootnote">Sample events are shown for demonstration.</span></div>
+          </section>
+          <section class="panel priority-panel">
+            <div class="panel-heading"><div><div class="section-kicker">SOURCE ANALYSIS</div><h2>Failed attempts by IP</h2><p>Top sources ranked by failed logins.</p></div><button class="text-button" data-open-view="ips">View all <span>→</span></button></div>
+            <div id="topIpChart" class="top-ip-chart"></div>
+            <div class="small-insight" id="topIpInsight"><span class="insight-icon">✦</span><span>Analyze logs to discover repeated failures.</span></div>
+          </section>
+        </div>
+
+        <div class="main-grid bottom-grid">
+          <section class="panel recent-panel">
+            <div class="panel-heading"><div><div class="section-kicker">LATEST ACTIVITY</div><h2>Recent authentication events</h2><p>Most recent parsed records in the current dataset.</p></div><button class="text-button" data-open-view="events">Event explorer <span>→</span></button></div>
+            <div class="table-scroll"><table class="data-table recent-table"><thead><tr><th>EVENT</th><th>USER / SOURCE</th><th>TIME</th><th>RESULT</th></tr></thead><tbody id="recentEventsBody"></tbody></table></div>
+            <div class="empty-state hidden" id="recentEmpty"><span class="empty-icon">≡</span><strong>No events yet</strong><p>Load sample data or analyze a log file to get started.</p><button class="button button-secondary" data-open-view="analyzer">Analyze logs</button></div>
+          </section>
+          <section class="panel parse-panel">
+            <div class="panel-heading"><div><div class="section-kicker">DATA QUALITY</div><h2>Parser health</h2><p>How well the input matched supported log formats.</p></div><span class="health-shield">✓</span></div>
+            <div class="parse-summary"><div><span>Recognized</span><strong id="qualityRecognized">0</strong></div><div><span>Unparsed</span><strong id="qualityUnparsed">0</strong></div></div>
+            <div class="quality-bar" aria-label="Parsing success ratio"><span id="qualityBarFill"></span></div>
+            <p class="quality-copy" id="qualityCopy">Upload or paste authentication logs. Unrecognized lines will be shown for review.</p>
+            <button class="button button-secondary button-full" data-open-view="events">Review parsed events <span>→</span></button>
+          </section>
+        </div>
+
+        <div class="page-footnote"><span>LOG SENTINEL</span><span>Local log analysis · No remote upload</span></div>
+      </section>
+
+      <section class="view" id="view-analyzer" data-view-panel="analyzer">
+        <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> INGESTION WORKSPACE</div><h1>Analyze authentication logs<span class="heading-period">.</span></h1><p>Paste log lines or choose a local file. Parsing happens in your browser.</p></div><button class="button button-secondary" id="loadSampleButton">✦ Load sample data</button></div>
+        <div class="analyzer-layout">
+          <section class="panel ingest-panel">
+            <div class="panel-heading"><div><div class="section-kicker">STEP 01 / INPUT</div><h2>Choose your log source</h2><p>Supported: .log, .txt and .csv text files.</p></div><span class="step-pill">01</span></div>
+            <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Choose a local log file or drop it here">
+              <input type="file" id="logFileInput" accept=".log,.txt,.csv,text/plain,text/csv" hidden>
+              <span class="upload-illustration"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 7h19l9 9v25H10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M29 7v10h9M17 27h14M17 33h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M24 22v-8m-4 4 4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <strong>Drop your log file here</strong><span>or <em>browse files</em> from your computer</span><small>Processed locally · File contents are not uploaded</small>
+            </div>
+            <div class="input-divider"><span>OR PASTE LOG CONTENT</span></div>
+            <label class="field-label" for="logTextInput">Authentication log lines</label>
+            <textarea id="logTextInput" class="log-textarea" spellcheck="false" placeholder="2026-10-12 09:22:31 FAILED_LOGIN user=admin ip=192.0.2.10&#10;2026-10-12 09:24:08 SUCCESS_LOGIN user=operator ip=192.0.2.12"></textarea>
+            <div class="textarea-foot"><span id="lineCount">0 lines</span><span>One log event per line</span></div>
+            <div class="format-help"><strong>Supported patterns</strong><span>Key-value events · SSH auth logs · JSON event lines</span></div>
+            <div class="form-actions"><button class="button button-secondary" id="clearInputButton">Clear input</button><button class="button button-primary" id="analyzeButton">Analyze logs <span>→</span></button></div>
+            <div class="inline-alert hidden" id="analyzeError" role="alert"></div>
+          </section>
+          <aside class="panel settings-panel">
+            <div class="panel-heading"><div><div class="section-kicker">STEP 02 / RULES</div><h2>Analysis settings</h2><p>Adjust how repeated failures are flagged.</p></div><span class="settings-icon">⚙</span></div>
+            <label class="field-label" for="thresholdInput">Failed attempts threshold</label>
+            <div class="threshold-control"><button id="thresholdDown" aria-label="Decrease threshold">−</button><input type="number" id="thresholdInput" min="2" max="20" value="5"><button id="thresholdUp" aria-label="Increase threshold">＋</button></div>
+            <p class="field-hint">An IP is flagged when its failed-login count reaches this number.</p>
+            <div class="settings-divider"></div>
+            <div class="rule-row"><span class="rule-check">✓</span><div><strong>Group by source IP</strong><small>Count failed and successful events for each address.</small></div></div>
+            <div class="rule-row"><span class="rule-check">✓</span><div><strong>Identify repeated failures</strong><small>Flag counts at or above the threshold.</small></div></div>
+            <div class="rule-row"><span class="rule-check">✓</span><div><strong>Report unparsed lines</strong><small>Keep unknown formats visible for review.</small></div></div>
+            <div class="privacy-note"><span>◇</span><div><strong>Privacy by design</strong><p>Log lines are analyzed in memory. Raw log content is not saved to localStorage or sent to a server.</p></div></div>
+          </aside>
+        </div>
+        <section class="panel analyzer-result-panel" id="analyzerResultPanel"><div class="result-placeholder"><span class="placeholder-icon">⌁</span><strong>Your analysis appears here</strong><p>Load sample data or paste a log file, then select Analyze logs.</p></div></section>
+      </section>
+
+      <section class="view" id="view-events" data-view-panel="events">
+        <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> EVENT INVESTIGATION</div><h1>Event explorer<span class="heading-period">.</span></h1><p>Search parsed login events and inspect lines the parser could not recognize.</p></div><button class="button button-secondary" id="exportEventsButton">⇩ Export events CSV</button></div>
+        <section class="panel explorer-panel">
+          <div class="explorer-tools"><div class="search-box"><span>⌕</span><input id="eventSearch" type="search" placeholder="Search user, IP, event or log text…" aria-label="Search events"></div><select id="eventTypeFilter" aria-label="Filter event type"><option value="all">All events</option><option value="failed">Failed login</option><option value="success">Successful login</option><option value="other">Other recognized</option><option value="unparsed">Unparsed lines</option></select><span class="result-count" id="eventResultCount">0 records</span></div>
+          <div class="table-scroll"><table class="data-table event-table"><thead><tr><th>TYPE</th><th>TIMESTAMP</th><th>USERNAME</th><th>SOURCE IP</th><th>DETAIL</th></tr></thead><tbody id="eventsTableBody"></tbody></table></div>
+          <div class="empty-state hidden" id="eventsEmpty"><span class="empty-icon">⌕</span><strong>No matching events</strong><p>Change the search or filter to see more records.</p></div>
+          <div class="table-footer"><span id="eventFooterText">No events loaded</span><button class="text-button" id="showAllEventsButton">Show all <span>→</span></button></div>
+        </section>
+      </section>
+
+      <section class="view" id="view-ips" data-view-panel="ips">
+        <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> SOURCE INVESTIGATION</div><h1>IP investigation<span class="heading-period">.</span></h1><p>Find source addresses with repeated failures and compare their login activity.</p></div><div class="threshold-inline"><span>Review threshold</span><strong id="ipThresholdValue">5 failures</strong></div></div>
+        <div class="ip-summary-grid"><article class="mini-summary"><span>Unique IPs</span><strong id="ipUniqueCount">0</strong><small>Observed in current logs</small></article><article class="mini-summary"><span>Flagged sources</span><strong id="ipFlaggedCount">0</strong><small>Meet threshold rule</small></article><article class="mini-summary"><span>Successful logins</span><strong id="ipSuccessCount">0</strong><small>From parsed events</small></article></div>
+        <section class="panel explorer-panel"><div class="panel-heading"><div><div class="section-kicker">SOURCE BREAKDOWN</div><h2>IP address report</h2><p>Counts are derived from recognized event lines.</p></div><button class="button button-secondary" id="exportIpsButton">⇩ Export IP report</button></div><div class="explorer-tools"><div class="search-box"><span>⌕</span><input id="ipSearch" type="search" placeholder="Search IP address…" aria-label="Search IP addresses"></div><select id="ipStateFilter" aria-label="Filter IP review status"><option value="all">All sources</option><option value="flagged">Flagged for review</option><option value="below">Below threshold</option></select><span class="result-count" id="ipResultCount">0 sources</span></div><div class="table-scroll"><table class="data-table ip-table"><thead><tr><th>SOURCE IP</th><th>FAILED</th><th>SUCCESS</th><th>LAST SEEN</th><th>REVIEW STATUS</th><th>FAILURE LEVEL</th></tr></thead><tbody id="ipTableBody"></tbody></table></div><div class="empty-state hidden" id="ipsEmpty"><span class="empty-icon">⌁</span><strong>No source addresses found</strong><p>Load or analyze authentication logs to build the IP report.</p></div></section>
+        <div class="investigation-disclaimer"><span>ⓘ</span><p><strong>Interpret results carefully.</strong> A high number of failed logins can be worth investigating, but shared NAT, misconfigured software, and legitimate user errors can produce similar patterns. This tool does not identify an attacker or block traffic.</p></div>
+      </section>
+
+      <section class="view" id="view-help" data-view-panel="help">
+        <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> PROJECT NOTES</div><h1>How Log Sentinel works<span class="heading-period">.</span></h1><p>A simple log parser and rule-based investigation aid.</p></div></div>
+        <div class="help-grid"><article class="panel help-card"><span class="help-number">01</span><h2>Parse</h2><p>Recognizes supported key-value events, common OpenSSH authentication messages, and JSON event records. Lines it cannot understand remain visible as unparsed.</p></article><article class="panel help-card"><span class="help-number">02</span><h2>Group</h2><p>Uses JavaScript objects to group recognized events by source IP and count failed and successful authentication attempts.</p></article><article class="panel help-card"><span class="help-number">03</span><h2>Flag</h2><p>Compares each IP's failed-login count against your threshold. A flag means “review this source,” not “confirmed attacker.”</p></article><article class="panel help-card"><span class="help-number">04</span><h2>Report</h2><p>Builds charts and tables from the parsed data and lets you export event and IP summaries to CSV.</p></article></div>
+        <div class="investigation-disclaimer"><span>ⓘ</span><p><strong>Data handling:</strong> Log content is processed in your browser tab and isn't uploaded. The site stores no raw logs in localStorage. Use synthetic or properly authorized logs only.</p></div>
+      </section>
+
+      <footer class="main-footer"><span>LOG SENTINEL <span class="footer-dot">•</span> AUTH ANALYTICS</span><span>Built for transparent, local-first log investigation</span></footer>
+    </main>
+  </div>
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+  <dialog class="help-dialog" id="helpDialog"><div class="dialog-head"><span class="dialog-icon">?</span><button class="icon-button" id="closeHelp" aria-label="Close help">×</button></div><h2>How to use Log Sentinel</h2><p>Analyze sample or authorized authentication logs. The parser recognizes a few common formats and shows unrecognized lines rather than silently dropping them.</p><ul><li>Use <strong>Analyze logs</strong> to paste or upload a local file.</li><li>Set the failure threshold in Analysis settings.</li><li>Review flagged IPs and the surrounding events before drawing conclusions.</li><li>Export a CSV summary for further review.</li></ul><p class="dialog-note">This is a learning tool. It does not monitor a live network or prove an attack from login counts alone.</p><div class="dialog-actions"><button class="button button-primary" id="closeHelpBottom">Got it</button></div></dialog>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
